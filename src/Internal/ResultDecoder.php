@@ -8,6 +8,7 @@ use Restate\Internal\Backend\AwaitResult;
 use Restate\Internal\Backend\AwaitState;
 use Restate\Internal\Backend\NotificationKind;
 use Restate\Internal\Backend\NotificationResult;
+use Restate\Internal\Client\MappedJsonSerde;
 use Restate\JournalValueCodec;
 use Restate\JsonSerde;
 use Restate\NoopJournalValueCodec;
@@ -23,6 +24,11 @@ use Restate\TerminalError;
  * - A failure throws its {@see TerminalError} (code, message, metadata), whatever the operation.
  * - A success payload goes through the Journal Value Codec and then the operation's serializer: json() decodes JSON
  *   and reports malformed JSON as the operation's failure; serde() lets the serializer's own exceptions through.
+ * - An empty success payload is null for JSON (json(), and serde() with {@see JsonSerde} or the handler-mapped JSON
+ *   serializer of {@see \Restate\Reflection\HandlerSerdes}), without the codec or the serializer: a handler without
+ *   output writes no bytes, and no JSON value encodes to none. Any other serializer gets the empty bytes, since they
+ *   can be a value of its own format (an empty protobuf message, say). The ingress client decodes an empty response
+ *   body the same way.
  * - Void is null for the value and void operations. A result kind the operation never produces is a
  *   `\RuntimeException`.
  *
@@ -44,6 +50,7 @@ final readonly class ResultDecoder
 
     /**
      * A value decoded as JSON (objects as arrays); malformed JSON fails as "<Operation> returned invalid success JSON.".
+     * An empty success (a handler without output) is null.
      *
      * @return self<mixed>
      */
@@ -52,14 +59,15 @@ final readonly class ResultDecoder
         $codec ??= new NoopJournalValueCodec();
 
         return new self($operation, static fn (NotificationResult $result): mixed => match ($result->kind) {
-            NotificationKind::Success => self::decodeJson($operation, $codec->decode($result->bytes())),
+            NotificationKind::Success => $result->bytes() === '' ? null : self::decodeJson($operation, $codec->decode($result->bytes())),
             NotificationKind::Void => null,
             default => throw self::unsupported($operation, $result),
         });
     }
 
     /**
-     * A value deserialized by $serde; whatever the serializer throws propagates as is.
+     * A value deserialized by $serde; whatever the serializer throws propagates as is. An empty success is null for
+     * the JSON serializers and reaches any other serializer as is.
      *
      * @return self<mixed>
      */
@@ -68,7 +76,9 @@ final readonly class ResultDecoder
         $codec ??= new NoopJournalValueCodec();
 
         return new self($operation, static fn (NotificationResult $result): mixed => match ($result->kind) {
-            NotificationKind::Success => $serde->deserialize($codec->decode($result->bytes())),
+            NotificationKind::Success => $result->bytes() === '' && self::isJson($serde)
+                ? null
+                : $serde->deserialize($codec->decode($result->bytes())),
             NotificationKind::Void => null,
             default => throw self::unsupported($operation, $result),
         });
@@ -183,6 +193,11 @@ final readonly class ResultDecoder
         } catch (\JsonException $e) {
             throw new \RuntimeException(ucfirst($operation) . ' returned invalid success JSON.', previous: $e);
         }
+    }
+
+    private static function isJson(Serde $serde): bool
+    {
+        return $serde instanceof JsonSerde || $serde instanceof MappedJsonSerde;
     }
 
     private static function unsupported(string $operation, NotificationResult $result): \RuntimeException

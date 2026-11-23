@@ -36,6 +36,7 @@ final readonly class EffectiveHandlerPayload
         private ?ReflectionType $type,
         private PayloadRole $role,
         private JsonPayloadOptions $jsonPayloads,
+        private ?\ReflectionParameter $parameter = null,
     ) {
     }
 
@@ -48,6 +49,8 @@ final readonly class EffectiveHandlerPayload
             $handler->inputType,
             PayloadRole::Input,
             $jsonPayloads,
+            // The payload parameter follows the context, as HandlerPayloadInferer reads it.
+            $handler->signature()->getParameters()[1] ?? null,
         );
     }
 
@@ -98,6 +101,10 @@ final readonly class EffectiveHandlerPayload
             } catch (\JsonException $e) {
                 throw self::invalidJsonInput($e);
             }
+        }
+
+        if ($input === '') {
+            return $this->emptyJsonInput();
         }
 
         try {
@@ -152,6 +159,26 @@ final readonly class EffectiveHandlerPayload
         $bytes = $serde === null ? json_encode($result, JSON_THROW_ON_ERROR) : $serde->serialize($result);
 
         return $journalValueCodec->encode($bytes);
+    }
+
+    /**
+     * A JSON input without a body: discovery advertises the input as optional unless it is declared required, and a
+     * caller sends a null payload as no body (the ingress client does). No JSON value encodes to no bytes, so it is
+     * no value: the parameter's default when it has one, null when its type accepts null (a nullable or `mixed`
+     * parameter, or an untyped one), and a 400 otherwise. Neither the Journal Value Codec nor JSON Value Mapping
+     * sees it.
+     */
+    private function emptyJsonInput(): mixed
+    {
+        if ($this->parameter?->isDefaultValueAvailable() === true) {
+            return $this->parameter->getDefaultValue();
+        }
+
+        if ($this->type === null || $this->type->allowsNull()) {
+            return null;
+        }
+
+        throw new TerminalError("{$this->serviceName}/{$this->handlerName} requires an input payload, but the request has no body.", 400);
     }
 
     /**

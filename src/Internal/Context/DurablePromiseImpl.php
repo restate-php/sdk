@@ -33,14 +33,14 @@ final readonly class DurablePromiseImpl implements DurablePromise
     #[\Override]
     public function value(Serde|string|null $serde = null): mixed
     {
-        return ResultDecoder::serde('promise get', $this->serde($serde), $this->codec())->await($this->operations, $this->operations->sysGetPromise($this->name), 'Promise get suspended.');
+        return ResultDecoder::value('promise get', $this->serde($serde), $this->codec())->await($this->operations, $this->operations->sysGetPromise($this->name), 'Promise get suspended.');
     }
 
     /** @param Serde|class-string<Serde>|null $serde */
     #[\Override]
     public function peek(Serde|string|null $serde = null): mixed
     {
-        return ResultDecoder::serde('promise peek', $this->serde($serde), $this->codec())->await($this->operations, $this->operations->sysPeekPromise($this->name), 'Promise peek suspended.');
+        return ResultDecoder::value('promise peek', $this->serde($serde), $this->codec())->await($this->operations, $this->operations->sysPeekPromise($this->name), 'Promise peek suspended.');
     }
 
     /** @param Serde|class-string<Serde>|null $serde */

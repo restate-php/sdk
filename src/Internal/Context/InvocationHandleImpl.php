@@ -74,7 +74,7 @@ final class InvocationHandleImpl implements InvocationHandle
         $serde = $serde === null ? $this->serde : SerdeResolver::resolve($serde);
         $handle = $this->operations->sysAttachInvocation($this->outputTarget());
 
-        return ResultDecoder::serde('invocation output', $serde, $this->journalValueCodec)->await($this->operations, $handle, 'Invocation output suspended.');
+        return ResultDecoder::value('invocation output', $serde, $this->journalValueCodec)->await($this->operations, $handle, 'Invocation output suspended.');
     }
 
     /** @param Serde|class-string<Serde>|null $serde */
@@ -84,7 +84,7 @@ final class InvocationHandleImpl implements InvocationHandle
         $serde = $serde === null ? $this->serde : SerdeResolver::resolve($serde);
         $handle = $this->operations->sysGetInvocationOutput($this->outputTarget());
 
-        return ResultDecoder::serde('invocation output', $serde, $this->journalValueCodec)->await($this->operations, $handle, 'Invocation output suspended.');
+        return ResultDecoder::value('invocation output', $serde, $this->journalValueCodec)->await($this->operations, $handle, 'Invocation output suspended.');
     }
 
     private function outputTarget(): AttachTarget
