@@ -105,7 +105,8 @@ final class SchemaGenerator
 
         $properties = [];
         foreach ($class->getProperties(ReflectionProperty::IS_PUBLIC) as $property) {
-            if ($property->isStatic()) {
+            // Static and virtual (hooked, unbacked) properties hold no per-object data, so they are not in the JSON Wire Shape.
+            if ($property->isStatic() || $property->isVirtual()) {
                 continue;
             }
 

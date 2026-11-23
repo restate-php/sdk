@@ -205,6 +205,19 @@ final readonly class EffectiveHandlerPayload
         return new JsonValueMappingContext($this->type, $this->role, $this->serviceName, $this->handlerName);
     }
 
+    /**
+     * A DTO the built-in mapper cannot describe (two properties mapped to one JSON name) is a programming error no retry
+     * fixes, so it fails the invocation terminally, like a type without DTO mapping.
+     */
+    private static function builtInMapperSupports(BuiltinJsonValueMapper $mapper, JsonValueMappingContext $context): bool
+    {
+        try {
+            return $mapper->supports($context);
+        } catch (\InvalidArgumentException $e) {
+            throw new TerminalError($e->getMessage(), 500);
+        }
+    }
+
     private function mapJsonInput(mixed $value, mixed $builtInValue, JsonValueMappingContext $context): mixed
     {
         $customMapper = $this->jsonPayloads->valueMapper();
@@ -213,7 +226,7 @@ final readonly class EffectiveHandlerPayload
         }
 
         $builtInMapper = new BuiltinJsonValueMapper();
-        if ($builtInMapper->supports($context)) {
+        if (self::builtInMapperSupports($builtInMapper, $context)) {
             return $builtInMapper->hydrate($builtInValue, $context);
         }
 
@@ -232,7 +245,7 @@ final readonly class EffectiveHandlerPayload
         }
 
         $builtInMapper = new BuiltinJsonValueMapper();
-        if ($builtInMapper->supports($context)) {
+        if (self::builtInMapperSupports($builtInMapper, $context)) {
             return $builtInMapper->normalize($value, $context);
         }
 
