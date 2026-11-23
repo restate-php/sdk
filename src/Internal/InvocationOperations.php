@@ -15,7 +15,7 @@ use Restate\RunRetryPolicy;
 
 /**
  * The operations a handler's context performs on its invocation: the Backend Contract's per-invocation half (see
- * docs/BACKEND_ARCHITECTURE.md). Arguments and results are typed values; payloads are bytes as the journal holds them.
+ * docs/internals/architecture.md). Arguments and results are typed values; payloads are bytes as the journal holds them.
  *
  * Every operation that produces a result returns a handle and never waits: callers drive it with doAwait() /
  * doAwaitTree() and take the result with takeNotificationResult() once it completed. {@see ResultDecoder} maps the

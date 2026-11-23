@@ -2,6 +2,9 @@
 
 Build [Restate](https://restate.dev) services in PHP: handlers whose calls, side effects, state, timers and promises Restate journals, so they run to completion across failures and restarts. `restate/sdk` is the package you serve with: Services, Virtual Objects and Workflows as attributed PHP classes or builders, the handler contexts, and the endpoint that serves them under `php -S`, PHP-FPM, FrankenPHP or any PSR-15 framework. All Restate traffic goes through the Restate PHP extension, which embeds [`restate-sdk-shared-core`](https://crates.io/crates/restate-sdk-shared-core), the core of the official TypeScript, Python and Rust SDKs.
 
+> [!NOTE]
+> A community-maintained SDK: not an official Restate SDK, and not supported by Restate.
+
 ## Installation
 
 ```bash
@@ -35,7 +38,7 @@ final class Greeter
 Endpoint::serve([new Greeter()]);
 ```
 
-The [Quickstart](https://github.com/restate-php/restate#quickstart) shows how to serve it, register it with Restate and call it; the [serving guide](https://github.com/restate-php/restate/blob/main/docs/SERVING.md) covers PHP-FPM, FrankenPHP and PSR-15.
+The [Docker quickstart](https://github.com/restate-php/restate/blob/main/examples/quickstart/README.md) runs a service like this one with a Restate server and walks through calling it, failing it and killing it mid-request; the [serving guide](https://github.com/restate-php/restate/blob/main/docs/serving.md) covers PHP-FPM, FrankenPHP and PSR-15.
 
 Related packages: [`restate/ingress`](https://github.com/restate-php/ingress) (call services from code that is not a handler), [`restate/testing`](https://github.com/restate-php/testing) (test harness).
 
@@ -47,7 +50,7 @@ Related packages: [`restate/ingress`](https://github.com/restate-php/ingress) (c
 
 ## Documentation
 
-See the [main repository](https://github.com/restate-php/restate) for the full documentation.
+See the [documentation](https://github.com/restate-php/restate/blob/main/docs/README.md): [installation](https://github.com/restate-php/restate/blob/main/docs/installation.md), [writing services](https://github.com/restate-php/restate/blob/main/docs/develop/services.md), [serving](https://github.com/restate-php/restate/blob/main/docs/serving.md) and [testing](https://github.com/restate-php/restate/blob/main/docs/develop/testing.md).
 
 This repository is a read-only subtree split of [restate-php/restate](https://github.com/restate-php/restate). Report issues and send pull requests there.
 

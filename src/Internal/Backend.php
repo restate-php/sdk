@@ -9,7 +9,7 @@ use Restate\Internal\Backend\Invocation;
 
 /**
  * Creates one invocation per request, reports the service protocol range and creates the endpoint's request identity
- * verifier: the Backend Contract's endpoint half (see docs/BACKEND_ARCHITECTURE.md).
+ * verifier: the Backend Contract's endpoint half (see docs/internals/architecture.md).
  *
  * @internal
  */

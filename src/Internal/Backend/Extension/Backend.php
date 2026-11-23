@@ -31,7 +31,7 @@ final class Backend implements BackendContract
     /**
      * The extension contract this package speaks (`Restate\Extension\contract_version()`; see extension/restate.stub.php).
      * 1 until the first extension release; after that it changes only together with `CONTRACT_VERSION` in
-     * extension/extension/src/lib.rs, by the rules in docs/EXTENSION_VERSIONS.md.
+     * extension/extension/src/lib.rs, by the rules in docs/compatibility.md.
      */
     public const int CONTRACT_VERSION = 1;
 
@@ -40,8 +40,8 @@ final class Backend implements BackendContract
      * binaries; building from source is for the platforms they do not cover.
      */
     private const string INSTALL_HINT = 'with PIE (`pie install restate/ext-restate`), which also enables it '
-        . '(`extension=restate` in php.ini); where PIE has no prebuilt binary, build it from source as the Restate PHP SDK '
-        . 'README describes under "Installing the extension"';
+        . '(`extension=restate` in php.ini); where PIE has no prebuilt binary, build it from source as '
+        . 'https://github.com/restate-php/restate/blob/main/docs/installation.md#building-from-source describes';
 
     /** @throws BackendException when the extension is not loaded or speaks another contract version */
     public function __construct()
