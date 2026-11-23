@@ -26,7 +26,7 @@
     "ext-restate": "~0.1.0",
     "psr/container": "^1.1 || ^2.0",
     "psr/http-factory": "^1.1",
-    "psr/http-message": "^2.0",
+    "psr/http-message": "^1.1 || ^2.0",
     "psr/http-server-handler": "^1.0",
     "psr/log": "^3.0",
     "restate/common": "self.version"
