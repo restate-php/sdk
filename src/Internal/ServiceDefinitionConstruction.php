@@ -8,12 +8,13 @@ use InvalidArgumentException;
 use ReflectionNamedType;
 use Restate\Context;
 use Restate\HandlerDefinition;
+use Restate\HandlerType;
 use Restate\HandlerInterceptor;
 use Restate\InvocationConfiguration;
 use Restate\RunInterceptor;
 use Restate\ObjectContext;
 use Restate\ObjectSharedContext;
-use Restate\ServiceDefinition;
+use Restate\ServiceType;
 use Restate\WorkflowContext;
 use Restate\WorkflowSharedContext;
 
@@ -24,18 +25,6 @@ use Restate\WorkflowSharedContext;
  */
 final class ServiceDefinitionConstruction
 {
-    private const array SERVICE_TYPES = [
-        ServiceDefinition::TYPE_SERVICE,
-        ServiceDefinition::TYPE_VIRTUAL_OBJECT,
-        ServiceDefinition::TYPE_WORKFLOW,
-    ];
-
-    private const array HANDLER_TYPES = [
-        HandlerDefinition::TYPE_EXCLUSIVE,
-        HandlerDefinition::TYPE_SHARED,
-        HandlerDefinition::TYPE_WORKFLOW,
-    ];
-
     private const array RESERVED_WORKFLOW_HANDLER_NAMES = [
         'workflowSubmit',
         'workflowAttach',
@@ -56,20 +45,6 @@ final class ServiceDefinitionConstruction
         }
     }
 
-    public static function assertValidServiceType(string $type): void
-    {
-        if (!in_array($type, self::SERVICE_TYPES, true)) {
-            throw new InvalidArgumentException("Invalid Restate service type {$type}.");
-        }
-    }
-
-    public static function assertValidHandlerType(?string $type): void
-    {
-        if ($type !== null && !in_array($type, self::HANDLER_TYPES, true)) {
-            throw new InvalidArgumentException("Invalid Restate handler type {$type}.");
-        }
-    }
-
     /** @param array<array-key, mixed> $handlers */
     public static function assertHandlers(array $handlers): void
     {
@@ -80,7 +55,7 @@ final class ServiceDefinitionConstruction
         }
     }
 
-    public static function assertHandlerCompatible(string $serviceName, string $serviceType, HandlerDefinition $handler): void
+    public static function assertHandlerCompatible(string $serviceName, ServiceType $serviceType, HandlerDefinition $handler): void
     {
         self::assertHandlerType($serviceName, $serviceType, $handler);
         self::assertContextReceived($serviceName, $serviceType, $handler);
@@ -88,16 +63,16 @@ final class ServiceDefinitionConstruction
     }
 
     /** Only virtual objects and workflows have state, so only they can choose what of it is preloaded. */
-    public static function assertStatePreloadAllowed(string $subject, string $serviceType, ?InvocationConfiguration $configuration): void
+    public static function assertStatePreloadAllowed(string $subject, ServiceType $serviceType, ?InvocationConfiguration $configuration): void
     {
-        if ($serviceType === ServiceDefinition::TYPE_SERVICE && $configuration?->statePreload !== null) {
+        if ($serviceType === ServiceType::Service && $configuration?->statePreload !== null) {
             throw new InvalidArgumentException("Service {$subject} has no state: state preloading applies only to virtual objects and workflows.");
         }
     }
 
-    private static function assertHandlerType(string $serviceName, string $serviceType, HandlerDefinition $handler): void
+    private static function assertHandlerType(string $serviceName, ServiceType $serviceType, HandlerDefinition $handler): void
     {
-        if ($serviceType === ServiceDefinition::TYPE_SERVICE) {
+        if ($serviceType === ServiceType::Service) {
             if ($handler->type !== null) {
                 throw new InvalidArgumentException("Service {$serviceName}/{$handler->name} handler type must not be set.");
             }
@@ -105,8 +80,8 @@ final class ServiceDefinitionConstruction
             return;
         }
 
-        if ($serviceType === ServiceDefinition::TYPE_VIRTUAL_OBJECT) {
-            if (!in_array($handler->type, [HandlerDefinition::TYPE_EXCLUSIVE, HandlerDefinition::TYPE_SHARED], true)) {
+        if ($serviceType === ServiceType::VirtualObject) {
+            if (!in_array($handler->type, [HandlerType::Exclusive, HandlerType::Shared], true)) {
                 throw new InvalidArgumentException("Virtual Object {$serviceName}/{$handler->name} handler type must be EXCLUSIVE or SHARED.");
             }
 
@@ -116,14 +91,14 @@ final class ServiceDefinitionConstruction
         self::assertWorkflowHandlerNameNotReserved($handler->name);
 
         if ($handler->name === 'run') {
-            if ($handler->type !== HandlerDefinition::TYPE_WORKFLOW) {
+            if ($handler->type !== HandlerType::Workflow) {
                 throw new InvalidArgumentException("Workflow {$serviceName}/run handler must be a workflow handler.");
             }
 
             return;
         }
 
-        if ($handler->type !== HandlerDefinition::TYPE_SHARED) {
+        if ($handler->type !== HandlerType::Shared) {
             throw new InvalidArgumentException("Workflow {$serviceName}/{$handler->name} handler must be shared.");
         }
     }
@@ -132,12 +107,12 @@ final class ServiceDefinitionConstruction
      * The handler's context parameter must accept the context its kind receives: that context or one it extends. A
      * narrower type (or an implementation class) would fail with a TypeError on every invocation.
      */
-    private static function assertContextReceived(string $serviceName, string $serviceType, HandlerDefinition $handler): void
+    private static function assertContextReceived(string $serviceName, ServiceType $serviceType, HandlerDefinition $handler): void
     {
         $received = self::contextFor($serviceType, $handler->type);
 
         // The handler definition already checked that the first parameter declares a context type.
-        $type = $handler->signature->getParameters()[0]->getType();
+        $type = $handler->signature()->getParameters()[0]->getType();
         if (!$type instanceof ReflectionNamedType) {
             return;
         }
@@ -145,9 +120,9 @@ final class ServiceDefinitionConstruction
         $declared = $type->getName();
         if (!is_a($received, $declared, true)) {
             $owner = match ($serviceType) {
-                ServiceDefinition::TYPE_VIRTUAL_OBJECT => 'Virtual Object',
-                ServiceDefinition::TYPE_WORKFLOW => 'Workflow',
-                default => 'Service',
+                ServiceType::VirtualObject => 'Virtual Object',
+                ServiceType::Workflow => 'Workflow',
+                ServiceType::Service => 'Service',
             };
 
             throw new InvalidArgumentException("{$owner} {$serviceName}/{$handler->name} handler declares context {$declared}, but receives a {$received}.");
@@ -159,12 +134,12 @@ final class ServiceDefinitionConstruction
      *
      * @return class-string<Context>
      */
-    private static function contextFor(string $serviceType, ?string $handlerType): string
+    private static function contextFor(ServiceType $serviceType, ?HandlerType $handlerType): string
     {
         return match ($serviceType) {
-            ServiceDefinition::TYPE_VIRTUAL_OBJECT => $handlerType === HandlerDefinition::TYPE_SHARED ? ObjectSharedContext::class : ObjectContext::class,
-            ServiceDefinition::TYPE_WORKFLOW => $handlerType === HandlerDefinition::TYPE_SHARED ? WorkflowSharedContext::class : WorkflowContext::class,
-            default => Context::class,
+            ServiceType::VirtualObject => $handlerType === HandlerType::Shared ? ObjectSharedContext::class : ObjectContext::class,
+            ServiceType::Workflow => $handlerType === HandlerType::Shared ? WorkflowSharedContext::class : WorkflowContext::class,
+            ServiceType::Service => Context::class,
         };
     }
 

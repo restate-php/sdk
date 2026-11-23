@@ -39,6 +39,9 @@ final readonly class Request
      * @param ?string $idempotencyKey the idempotency key the invocation was submitted with, if any
      * @param ?string $scope the scope the invocation was submitted with, if any
      * @param ?string $limitKey the limit key the invocation was submitted with, if any
+     *
+     * @internal built by the endpoint for each invocation, which hands it to handlers ({@see Context::request()}) and
+     *           service factories
      */
     public function __construct(
         public string $id,

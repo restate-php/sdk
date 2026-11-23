@@ -9,7 +9,11 @@ namespace Restate;
  */
 final readonly class WorkflowClient
 {
-    /** @param ?string $scope the scope its targets are in ({@see Context::scope()}); null for none */
+    /**
+     * @param ?string $scope the scope its targets are in ({@see Context::scope()}); null for none
+     *
+     * @internal built by {@see Context::workflowClient()} and {@see Scope::workflowClient()}
+     */
     public function __construct(
         private readonly Context $context,
         private readonly string $workflow,

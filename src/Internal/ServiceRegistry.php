@@ -15,6 +15,7 @@ use Restate\ErrorMapper;
 use Restate\HandlerExecution;
 use Restate\HandlerInterceptor;
 use Restate\HandlerDefinition;
+use Restate\HandlerType;
 use Restate\JournalValueCodec;
 use Restate\JsonPayloadOptions;
 use Restate\Request;
@@ -22,6 +23,7 @@ use Restate\RunInterceptor;
 use Restate\Serde;
 use Restate\Service;
 use Restate\ServiceDefinition;
+use Restate\ServiceType;
 use Restate\Target;
 use Restate\TerminalError;
 use Restate\VirtualObject;
@@ -151,37 +153,32 @@ final class ServiceRegistry
         $operations = $attempt->operations;
         $defaultSerde = $this->defaultSerdeFor($service);
 
-        if ($service->type === ServiceDefinition::TYPE_SERVICE) {
+        if ($service->type === ServiceType::Service) {
             $request = self::request($attempt, Target::service($service->name, $handler->name), $input);
 
             return new ContextImpl($operations, $request, $attempt->randomSeed, $defaultSerde, $this->journalValueCodec, $hooks, $attempt->logger);
         }
 
         if ($key === null || $key === '') {
-            throw new TerminalError(match ($service->type) {
-                ServiceDefinition::TYPE_VIRTUAL_OBJECT => 'Virtual Object invocation key is required',
-                ServiceDefinition::TYPE_WORKFLOW => 'Workflow invocation key is required',
-                default => 'Invocation key is required',
-            }, 400);
+            throw new TerminalError($service->type === ServiceType::Workflow ? 'Workflow invocation key is required' : 'Virtual Object invocation key is required', 400);
         }
 
-        $target = $service->type === ServiceDefinition::TYPE_WORKFLOW
+        $target = $service->type === ServiceType::Workflow
             ? Target::workflow($service->name, $key, $handler->name)
             : Target::object($service->name, $key, $handler->name);
         $request = self::request($attempt, $target, $input);
 
         return match ($service->type) {
-            ServiceDefinition::TYPE_VIRTUAL_OBJECT => match ($handler->type) {
-                HandlerDefinition::TYPE_EXCLUSIVE => new ObjectContextImpl($operations, $request, $attempt->randomSeed, $defaultSerde, $this->journalValueCodec, $hooks, $attempt->logger),
-                HandlerDefinition::TYPE_SHARED => new ObjectSharedContextImpl($operations, $request, $attempt->randomSeed, $defaultSerde, $this->journalValueCodec, $hooks, $attempt->logger),
+            ServiceType::VirtualObject => match ($handler->type) {
+                HandlerType::Exclusive => new ObjectContextImpl($operations, $request, $attempt->randomSeed, $defaultSerde, $this->journalValueCodec, $hooks, $attempt->logger),
+                HandlerType::Shared => new ObjectSharedContextImpl($operations, $request, $attempt->randomSeed, $defaultSerde, $this->journalValueCodec, $hooks, $attempt->logger),
                 default => throw new TerminalError('Virtual Object handler type is required', 500),
             },
-            ServiceDefinition::TYPE_WORKFLOW => match ($handler->type) {
-                HandlerDefinition::TYPE_WORKFLOW => new WorkflowContextImpl($operations, $request, $attempt->randomSeed, $defaultSerde, $this->journalValueCodec, $hooks, $attempt->logger),
-                HandlerDefinition::TYPE_SHARED => new WorkflowSharedContextImpl($operations, $request, $attempt->randomSeed, $defaultSerde, $this->journalValueCodec, $hooks, $attempt->logger),
+            ServiceType::Workflow => match ($handler->type) {
+                HandlerType::Workflow => new WorkflowContextImpl($operations, $request, $attempt->randomSeed, $defaultSerde, $this->journalValueCodec, $hooks, $attempt->logger),
+                HandlerType::Shared => new WorkflowSharedContextImpl($operations, $request, $attempt->randomSeed, $defaultSerde, $this->journalValueCodec, $hooks, $attempt->logger),
                 default => throw new TerminalError('Workflow handler type is required', 500),
             },
-            default => throw new TerminalError('Service type is unsupported', 500),
         };
     }
 

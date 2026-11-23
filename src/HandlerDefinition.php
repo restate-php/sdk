@@ -5,28 +5,24 @@ declare(strict_types=1);
 namespace Restate;
 
 use Restate\Internal\ServiceDefinitionConstruction;
-use Restate\Reflection\HandlerPayloadInferer;
+use Restate\Reflection\Internal\HandlerPayloadInferer;
 use Restate\Reflection\ServiceReflector;
 
 final readonly class HandlerDefinition
 {
-    public const string TYPE_EXCLUSIVE = 'EXCLUSIVE';
-    public const string TYPE_SHARED = 'SHARED';
-    public const string TYPE_WORKFLOW = 'WORKFLOW';
-
     public readonly \Closure $callback;
 
     /**
      * The PHP signature the handler's context type and payloads are read from: the callback's own, or the method a
      * callback forwards to (a handler of a service class instantiated per invocation, {@see ServiceReflector::fromClass()}).
      */
-    public readonly \ReflectionFunctionAbstract $signature;
+    private \ReflectionFunctionAbstract $signature;
     public readonly Payload $inputPayload;
     public readonly Payload $outputPayload;
     public readonly ?\ReflectionType $inputType;
     public readonly ?\ReflectionType $outputType;
-    public readonly bool $inputPayloadExplicit;
-    public readonly bool $outputPayloadExplicit;
+    private bool $inputPayloadExplicit;
+    private bool $outputPayloadExplicit;
     /** @var array<string, string> */
     public readonly array $metadata;
 
@@ -38,7 +34,7 @@ final readonly class HandlerDefinition
     public function __construct(
         public readonly string $name,
         callable $callback,
-        public readonly ?string $type = null,
+        public readonly ?HandlerType $type = null,
         ?Payload $inputPayload = null,
         ?Payload $outputPayload = null,
         public readonly ?string $documentation = null,
@@ -48,7 +44,6 @@ final readonly class HandlerDefinition
         ?\ReflectionFunctionAbstract $signature = null,
     ) {
         ServiceDefinitionConstruction::assertValidHandlerName($name);
-        ServiceDefinitionConstruction::assertValidHandlerType($type);
         $validatedMetadata = ServiceDefinitionConstruction::validatedMetadata($metadata, 'Handler');
 
         $this->callback = \Closure::fromCallable($callback);
@@ -57,5 +52,35 @@ final readonly class HandlerDefinition
         $this->inputPayloadExplicit = $inputPayload !== null;
         $this->outputPayloadExplicit = $outputPayload !== null;
         [$this->inputPayload, $this->outputPayload, $this->inputType, $this->outputType] = HandlerPayloadInferer::payloadsFor($name, $this->signature, $inputPayload, $outputPayload);
+    }
+
+    /**
+     * The PHP signature the handler's context type and payloads are read from.
+     *
+     * @internal the endpoint's context check reads it
+     */
+    public function signature(): \ReflectionFunctionAbstract
+    {
+        return $this->signature;
+    }
+
+    /**
+     * Whether the input payload was given rather than inferred from the signature.
+     *
+     * @internal the endpoint applies the service's or endpoint's default serde only to inferred payloads
+     */
+    public function isInputPayloadExplicit(): bool
+    {
+        return $this->inputPayloadExplicit;
+    }
+
+    /**
+     * Whether the output payload was given rather than inferred from the signature.
+     *
+     * @internal the endpoint applies the service's or endpoint's default serde only to inferred payloads
+     */
+    public function isOutputPayloadExplicit(): bool
+    {
+        return $this->outputPayloadExplicit;
     }
 }

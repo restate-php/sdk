@@ -39,18 +39,18 @@ final readonly class Workflow
     /** @param array<array-key, mixed> $metadata */
     public function run(callable $callback, ?Payload $input = null, ?Payload $output = null, ?string $documentation = null, array $metadata = [], ?InvocationRetryPolicy $invocationRetryPolicy = null, ?InvocationConfiguration $invocationConfiguration = null): self
     {
-        return $this->addHandler('run', $callback, HandlerDefinition::TYPE_WORKFLOW, $input, $output, $documentation, $metadata, $invocationRetryPolicy, $invocationConfiguration);
+        return $this->addHandler('run', $callback, HandlerType::Workflow, $input, $output, $documentation, $metadata, $invocationRetryPolicy, $invocationConfiguration);
     }
 
     /** @param array<array-key, mixed> $metadata */
     public function sharedHandler(string $name, callable $callback, ?Payload $input = null, ?Payload $output = null, ?string $documentation = null, array $metadata = [], ?InvocationRetryPolicy $invocationRetryPolicy = null, ?InvocationConfiguration $invocationConfiguration = null): self
     {
-        return $this->addHandler($name, $callback, HandlerDefinition::TYPE_SHARED, $input, $output, $documentation, $metadata, $invocationRetryPolicy, $invocationConfiguration);
+        return $this->addHandler($name, $callback, HandlerType::Shared, $input, $output, $documentation, $metadata, $invocationRetryPolicy, $invocationConfiguration);
     }
 
     public function definition(): ServiceDefinition
     {
-        return new ServiceDefinition($this->name, $this->handlers, ServiceDefinition::TYPE_WORKFLOW, $this->documentation, $this->metadata, $this->invocationRetryPolicy, $this->defaultSerde, $this->invocationConfiguration, $this->interceptors, $this->errorMapper);
+        return new ServiceDefinition($this->name, $this->handlers, ServiceType::Workflow, $this->documentation, $this->metadata, $this->invocationRetryPolicy, $this->defaultSerde, $this->invocationConfiguration, $this->interceptors, $this->errorMapper);
     }
 
     /** @param Serde|class-string<Serde> $serde */
@@ -84,7 +84,7 @@ final readonly class Workflow
     }
 
     /** @param array<array-key, mixed> $metadata */
-    private function addHandler(string $name, callable $callback, string $type, ?Payload $input = null, ?Payload $output = null, ?string $documentation = null, array $metadata = [], ?InvocationRetryPolicy $invocationRetryPolicy = null, ?InvocationConfiguration $invocationConfiguration = null): self
+    private function addHandler(string $name, callable $callback, HandlerType $type, ?Payload $input = null, ?Payload $output = null, ?string $documentation = null, array $metadata = [], ?InvocationRetryPolicy $invocationRetryPolicy = null, ?InvocationConfiguration $invocationConfiguration = null): self
     {
         ServiceDefinitionConstruction::assertValidHandlerName($name);
         ServiceDefinitionConstruction::assertWorkflowHandlerNameNotReserved($name);

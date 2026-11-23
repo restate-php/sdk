@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Restate;
 
-use Restate\Reflection\JsonSchemaInferer;
+use Restate\Reflection\Internal\JsonSchemaInferer;
 
 final class BuiltinJsonSchemaProvider implements JsonSchemaProvider
 {

@@ -8,6 +8,6 @@ final class UnsupportedJsonSchemaException extends \RuntimeException implements 
 {
     public static function forContext(JsonSchemaContext $context): self
     {
-        return new self("JSON Schema Metadata is unsupported for {$context->serviceName}/{$context->handlerName} {$context->role}.");
+        return new self("JSON Schema Metadata is unsupported for {$context->serviceName}/{$context->handlerName} {$context->role->value}.");
     }
 }

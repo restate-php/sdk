@@ -6,7 +6,11 @@ namespace Restate;
 
 final readonly class ServiceClient
 {
-    /** @param ?string $scope the scope its targets are in ({@see Context::scope()}); null for none */
+    /**
+     * @param ?string $scope the scope its targets are in ({@see Context::scope()}); null for none
+     *
+     * @internal built by {@see Context::serviceClient()} and {@see Scope::serviceClient()}
+     */
     public function __construct(
         private readonly Context $context,
         private readonly string $service,

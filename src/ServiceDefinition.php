@@ -10,10 +10,6 @@ use Restate\Internal\ServiceDefinitionConstruction;
 
 final readonly class ServiceDefinition
 {
-    public const string TYPE_SERVICE = 'SERVICE';
-    public const string TYPE_VIRTUAL_OBJECT = 'VIRTUAL_OBJECT';
-    public const string TYPE_WORKFLOW = 'WORKFLOW';
-
     /** @var array<string, string> */
     public readonly array $metadata;
 
@@ -36,7 +32,7 @@ final readonly class ServiceDefinition
     public function __construct(
         public readonly string $name,
         public readonly array $handlers,
-        public readonly string $type = self::TYPE_SERVICE,
+        public readonly ServiceType $type = ServiceType::Service,
         public readonly ?string $documentation = null,
         array $metadata = [],
         public readonly ?InvocationRetryPolicy $invocationRetryPolicy = null,
@@ -46,7 +42,6 @@ final readonly class ServiceDefinition
         ErrorMapper|\Closure|null $errorMapper = null,
     ) {
         ServiceDefinitionConstruction::assertValidServiceName($name);
-        ServiceDefinitionConstruction::assertValidServiceType($type);
         ServiceDefinitionConstruction::assertHandlers($handlers);
         ServiceDefinitionConstruction::assertStatePreloadAllowed($name, $type, $invocationConfiguration);
 
@@ -59,10 +54,10 @@ final readonly class ServiceDefinition
             $handlerNames[$handler->name] = true;
 
             ServiceDefinitionConstruction::assertHandlerCompatible($name, $type, $handler);
-            $hasWorkflowRun = $hasWorkflowRun || ($handler->name === 'run' && $handler->type === HandlerDefinition::TYPE_WORKFLOW);
+            $hasWorkflowRun = $hasWorkflowRun || ($handler->name === 'run' && $handler->type === HandlerType::Workflow);
         }
 
-        if ($type === self::TYPE_WORKFLOW && !$hasWorkflowRun) {
+        if ($type === ServiceType::Workflow && !$hasWorkflowRun) {
             throw new InvalidArgumentException("Workflow {$name} must define a run handler.");
         }
 

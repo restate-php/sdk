@@ -24,6 +24,8 @@ final readonly class ClientRequest
      * @param Serde|class-string<Serde>|null $inputSerde
      * @param Serde|class-string<Serde>|null $outputSerde
      * @param array<string, string>|list<array{0: string, 1: string}> $headers
+     *
+     * @internal built by the clients a handler context hands out ({@see Context::serviceClient()}, …)
      */
     public function __construct(
         private readonly Context $context,

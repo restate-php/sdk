@@ -15,6 +15,7 @@ use Restate\JsonSchemaMetadata;
 use Restate\JsonSerde;
 use Restate\JsonValueMappingContext;
 use Restate\Payload;
+use Restate\PayloadRole;
 use Restate\Reflection\BuiltinJsonValueMapper;
 use Restate\Serde;
 use Restate\ServiceDefinition;
@@ -33,7 +34,7 @@ final readonly class EffectiveHandlerPayload
         private string $handlerName,
         private Payload $payload,
         private ?ReflectionType $type,
-        private string $role,
+        private PayloadRole $role,
         private JsonPayloadOptions $jsonPayloads,
     ) {
     }
@@ -43,9 +44,9 @@ final readonly class EffectiveHandlerPayload
         return new self(
             $service->name,
             $handler->name,
-            self::resolve($handler->inputPayload, $handler->inputPayloadExplicit, self::defaultSerdeFor($service, $endpointDefaultSerde)),
+            self::resolve($handler->inputPayload, $handler->isInputPayloadExplicit(), self::defaultSerdeFor($service, $endpointDefaultSerde)),
             $handler->inputType,
-            JsonValueMappingContext::ROLE_INPUT,
+            PayloadRole::Input,
             $jsonPayloads,
         );
     }
@@ -55,9 +56,9 @@ final readonly class EffectiveHandlerPayload
         return new self(
             $service->name,
             $handler->name,
-            self::resolve($handler->outputPayload, $handler->outputPayloadExplicit, self::defaultSerdeFor($service, $endpointDefaultSerde)),
+            self::resolve($handler->outputPayload, $handler->isOutputPayloadExplicit(), self::defaultSerdeFor($service, $endpointDefaultSerde)),
             $handler->outputType,
-            JsonValueMappingContext::ROLE_OUTPUT,
+            PayloadRole::Output,
             $jsonPayloads,
         );
     }
@@ -67,14 +68,14 @@ final readonly class EffectiveHandlerPayload
     {
         $schema = $this->resolvedJsonSchema();
 
-        return $this->role === JsonValueMappingContext::ROLE_INPUT
+        return $this->role === PayloadRole::Input
             ? $this->payload->inputManifest($schema)
             : $this->payload->outputManifest($schema);
     }
 
     public function decodeInput(string $input, JournalValueCodec $journalValueCodec): mixed
     {
-        if ($this->role !== JsonValueMappingContext::ROLE_INPUT) {
+        if ($this->role !== PayloadRole::Input) {
             throw new LogicException('Output payloads cannot decode handler input.');
         }
 
@@ -117,7 +118,7 @@ final readonly class EffectiveHandlerPayload
 
     public function encodeOutput(mixed $result, JournalValueCodec $journalValueCodec): string
     {
-        if ($this->role !== JsonValueMappingContext::ROLE_OUTPUT) {
+        if ($this->role !== PayloadRole::Output) {
             throw new LogicException('Input payloads cannot encode handler output.');
         }
 

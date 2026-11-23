@@ -17,7 +17,9 @@ use Restate\Internal\FlowControlKeys;
  */
 final readonly class Scope
 {
-    /** Usually built by {@see Context::scope()}. */
+    /**
+     * @internal built by {@see Context::scope()}
+     */
     public function __construct(
         private Context $context,
         private string $scope,

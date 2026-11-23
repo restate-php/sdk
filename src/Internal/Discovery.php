@@ -6,6 +6,7 @@ namespace Restate\Internal;
 
 use InvalidArgumentException;
 use Restate\HandlerDefinition;
+use Restate\HandlerType;
 use Restate\InvocationConfiguration;
 use Restate\InvocationRetryPolicy;
 use Restate\JsonPayloadOptions;
@@ -70,7 +71,7 @@ final class Discovery
                 }
                 $handlerPayload = [...$handlerPayload, ...self::invocationConfigurationFields($handler->invocationConfiguration)];
                 if ($handler->type !== null) {
-                    $handlerPayload['ty'] = $handler->type;
+                    $handlerPayload['ty'] = $handler->type->value;
                 }
                 $handlerPayload['input'] = $registry->effectiveHandlerInputPayload($service, $handler, $jsonPayloads)->manifest();
                 $handlerPayload['output'] = $registry->effectiveHandlerOutputPayload($service, $handler, $jsonPayloads)->manifest();
@@ -79,7 +80,7 @@ final class Discovery
 
             $servicePayload = [
                 'name' => $service->name,
-                'ty' => $service->type,
+                'ty' => $service->type->value,
                 'handlers' => $handlers,
             ];
             if ($includeDefinitionMetadata && $service->documentation !== null) {
@@ -162,10 +163,10 @@ final class Discovery
         }
 
         $subject = "Handler {$service->name}/{$handler->name}";
-        if ($configuration->workflowCompletionRetentionMillis !== null && $handler->type !== HandlerDefinition::TYPE_WORKFLOW) {
+        if ($configuration->workflowCompletionRetentionMillis !== null && $handler->type !== HandlerType::Workflow) {
             throw new InvalidArgumentException("{$subject} workflow completion retention is valid only for workflow handlers.");
         }
-        if ($configuration->idempotencyRetentionMillis !== null && $handler->type === HandlerDefinition::TYPE_WORKFLOW) {
+        if ($configuration->idempotencyRetentionMillis !== null && $handler->type === HandlerType::Workflow) {
             throw new InvalidArgumentException("{$subject} idempotency retention is not valid for workflow handlers.");
         }
     }

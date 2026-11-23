@@ -90,6 +90,6 @@ final readonly class Service
 
     public function definition(): ServiceDefinition
     {
-        return new ServiceDefinition($this->name, $this->handlers, ServiceDefinition::TYPE_SERVICE, $this->documentation, $this->metadata, $this->invocationRetryPolicy, $this->defaultSerde, $this->invocationConfiguration, $this->interceptors, $this->errorMapper);
+        return new ServiceDefinition($this->name, $this->handlers, ServiceType::Service, $this->documentation, $this->metadata, $this->invocationRetryPolicy, $this->defaultSerde, $this->invocationConfiguration, $this->interceptors, $this->errorMapper);
     }
 }

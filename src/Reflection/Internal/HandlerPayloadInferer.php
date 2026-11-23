@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Restate\Reflection;
+namespace Restate\Reflection\Internal;
 
 use Closure;
 use InvalidArgumentException;
@@ -13,6 +13,11 @@ use ReflectionParameter;
 use Restate\Context;
 use Restate\Payload;
 
+/**
+ * Reads a handler's payloads and payload types from its PHP signature.
+ *
+ * @internal
+ */
 final class HandlerPayloadInferer
 {
     /**

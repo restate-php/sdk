@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Restate\Reflection;
+namespace Restate\Reflection\Internal;
 
 use InvalidArgumentException;
 use ReflectionIntersectionType;
@@ -18,6 +18,11 @@ use Restate\JsonSchema\Type;
 use Restate\JsonSchemaMetadata;
 use stdClass;
 
+/**
+ * Infers the JSON Schema Metadata of a payload type for the built-in schema provider.
+ *
+ * @internal
+ */
 final class JsonSchemaInferer
 {
     /**

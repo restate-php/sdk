@@ -17,9 +17,11 @@ use Restate\Attributes\VirtualObject as VirtualObjectAttribute;
 use Restate\Attributes\Workflow as WorkflowAttribute;
 use Restate\Context;
 use Restate\HandlerDefinition;
+use Restate\HandlerType;
 use Restate\Internal\ServiceDefinitionConstruction;
 use Restate\Request;
 use Restate\ServiceDefinition;
+use Restate\ServiceType;
 
 final class ServiceReflector
 {
@@ -93,13 +95,13 @@ final class ServiceReflector
 
         if (count($serviceAttributes) === 1) {
             $attribute = $serviceAttributes[0]->newInstance();
-            $type = ServiceDefinition::TYPE_SERVICE;
+            $type = ServiceType::Service;
         } elseif (count($objectAttributes) === 1) {
             $attribute = $objectAttributes[0]->newInstance();
-            $type = ServiceDefinition::TYPE_VIRTUAL_OBJECT;
+            $type = ServiceType::VirtualObject;
         } else {
             $attribute = $workflowAttributes[0]->newInstance();
-            $type = ServiceDefinition::TYPE_WORKFLOW;
+            $type = ServiceType::Workflow;
         }
 
         ServiceDefinitionConstruction::assertValidServiceName($attribute->name);
@@ -126,22 +128,22 @@ final class ServiceReflector
 
             $sharedAttributes = $method->getAttributes(Shared::class);
             $handlerType = null;
-            if ($type === ServiceDefinition::TYPE_VIRTUAL_OBJECT) {
+            if ($type === ServiceType::VirtualObject) {
                 $handlerType = $sharedAttributes === []
-                    ? HandlerDefinition::TYPE_EXCLUSIVE
-                    : HandlerDefinition::TYPE_SHARED;
-            } elseif ($type === ServiceDefinition::TYPE_WORKFLOW) {
+                    ? HandlerType::Exclusive
+                    : HandlerType::Shared;
+            } elseif ($type === ServiceType::Workflow) {
                 if ($handlerName === 'run') {
                     if ($sharedAttributes !== []) {
                         throw new InvalidArgumentException("Workflow {$attribute->name}/run handler must not be shared.");
                     }
-                    $handlerType = HandlerDefinition::TYPE_WORKFLOW;
+                    $handlerType = HandlerType::Workflow;
                 } else {
                     ServiceDefinitionConstruction::assertWorkflowHandlerNameNotReserved($handlerName);
                     if ($sharedAttributes === []) {
                         throw new InvalidArgumentException("Workflow {$attribute->name}/{$handlerName} handler must be shared.");
                     }
-                    $handlerType = HandlerDefinition::TYPE_SHARED;
+                    $handlerType = HandlerType::Shared;
                 }
             }
 
