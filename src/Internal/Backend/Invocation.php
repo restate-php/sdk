@@ -29,10 +29,11 @@ interface Invocation extends InvocationOperations
     public function writeOutputFailure(int $code, string $message, array $metadata = []): void;
 
     /**
-     * Ends the attempt with a retryable failure. `$retryAfterMillis` asks Restate to wait that long before the next
-     * attempt instead of following the invocation retry policy.
+     * Ends the attempt with a retryable failure with status `$code` (500 unless 400–599 and not 570).
+     * `$retryAfterMillis` asks Restate to wait that long before the next attempt instead of following the invocation
+     * retry policy. The protocol's error message has no metadata.
      */
-    public function notifyError(string $message, string $stacktrace = '', ?int $retryAfterMillis = null): void;
+    public function notifyError(string $message, string $stacktrace = '', ?int $retryAfterMillis = null, int $code = 500): void;
 
     /**
      * Ends the attempt asking Restate to pause the invocation instead of retrying it, until someone resumes it. Needs

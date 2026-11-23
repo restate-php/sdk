@@ -110,9 +110,9 @@ final class Invocation implements InvocationContract, ReplayStateProvider
         $this->withVm(fn () => $this->vm()->writeOutputFailure($code, $message, TerminalMetadata::forBackend($metadata)));
     }
 
-    public function notifyError(string $message, string $stacktrace = '', ?int $retryAfterMillis = null): void
+    public function notifyError(string $message, string $stacktrace = '', ?int $retryAfterMillis = null, int $code = 500): void
     {
-        $this->withVm(fn () => $this->vm()->notifyError($message, $stacktrace, $retryAfterMillis));
+        $this->withVm(fn () => $this->vm()->notifyError($code, $message, $stacktrace, $retryAfterMillis));
     }
 
     public function notifyPause(string $message, string $stacktrace = ''): void

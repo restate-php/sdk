@@ -308,7 +308,13 @@ final readonly class Endpoint
                 $vm->notifyPause($e->getMessage(), $e->getTraceAsString());
             } else {
                 $this->log(LogLevel::WARNING, 'Invocation attempt failed; Restate retries it', $logContext + ['exception' => $e]);
-                $vm->notifyError($e->getMessage(), $e->getTraceAsString(), $e instanceof RetryableError ? $e->retryAfterMillis() : null);
+                // A RetryableError reports its status code (its metadata has no place in the protocol's error message);
+                // anything else is 500.
+                if ($e instanceof RetryableError) {
+                    $vm->notifyError($e->getMessage(), $e->getTraceAsString(), $e->retryAfterMillis(), $e->statusCode());
+                } else {
+                    $vm->notifyError($e->getMessage(), $e->getTraceAsString());
+                }
             }
         }
 

@@ -392,7 +392,7 @@ class ContextImpl implements Context
             }
 
             $status = $failure instanceof RetryableError
-                ? $vm->proposeRunCompletionRetryable($handle, $failure->getMessage(), $attemptDurationMillis(), $policy, $failure->retryAfterMillis(), $failure->getCode(), $failure->metadata())
+                ? $vm->proposeRunCompletionRetryable($handle, $failure->getMessage(), $attemptDurationMillis(), $policy, $failure->retryAfterMillis(), $failure->statusCode(), $failure->metadata())
                 : $vm->proposeRunCompletionRetryable($handle, $failure->getMessage(), $attemptDurationMillis(), $policy);
             if ($status === RunCompletionStatus::AttemptEnded) {
                 // Under a policy that pauses once exhausted the core cannot tell a scheduled retry from a pause
