@@ -31,7 +31,7 @@ final class Backend implements BackendContract
     /**
      * The extension contract this package speaks (`Restate\Extension\contract_version()`; see extension/restate.stub.php).
      * 1 until the first extension release; after that it changes only together with `CONTRACT_VERSION` in
-     * extension/extension/src/lib.rs, by the rules in docs/compatibility.md.
+     * extension/extension/src/lib.rs, by the rules in RELEASING.md ("Bumping versions").
      */
     public const int CONTRACT_VERSION = 1;
 
