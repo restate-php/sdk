@@ -133,7 +133,7 @@ final class ServiceRegistry
                 new HandlerExecution($handlerContext->request(), $handlerContext->isReplaying(...)),
                 $isSuspended,
                 function () use ($resolved, $handlerContext, $input): string {
-                    $decoded = $resolved['input']->decodeInput($input, $this->journalValueCodec);
+                    $decoded = $resolved['input']->decodeInput($input, $this->journalValueCodec, $resolved['handler']->signature());
                     $result = ($resolved['handler']->callback)($handlerContext, $decoded);
 
                     return $resolved['output']->encodeOutput($result, $this->journalValueCodec);

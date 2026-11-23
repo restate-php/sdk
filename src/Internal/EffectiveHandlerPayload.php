@@ -36,7 +36,6 @@ final readonly class EffectiveHandlerPayload
         private ?ReflectionType $type,
         private PayloadRole $role,
         private JsonPayloadOptions $jsonPayloads,
-        private ?\ReflectionParameter $parameter = null,
     ) {
     }
 
@@ -49,8 +48,6 @@ final readonly class EffectiveHandlerPayload
             $handler->inputType,
             PayloadRole::Input,
             $jsonPayloads,
-            // The payload parameter follows the context, as HandlerPayloadInferer reads it.
-            $handler->signature()->getParameters()[1] ?? null,
         );
     }
 
@@ -76,7 +73,11 @@ final readonly class EffectiveHandlerPayload
             : $this->payload->outputManifest($schema);
     }
 
-    public function decodeInput(string $input, JournalValueCodec $journalValueCodec): mixed
+    /**
+     * @param ?\ReflectionFunctionAbstract $signature the handler's signature, for the payload parameter's default when
+     *        the body is empty; passed per call so that building an endpoint creates no ReflectionParameter objects
+     */
+    public function decodeInput(string $input, JournalValueCodec $journalValueCodec, ?\ReflectionFunctionAbstract $signature = null): mixed
     {
         if ($this->role !== PayloadRole::Input) {
             throw new LogicException('Output payloads cannot decode handler input.');
@@ -104,7 +105,7 @@ final readonly class EffectiveHandlerPayload
         }
 
         if ($input === '') {
-            return $this->emptyJsonInput();
+            return $this->emptyJsonInput($signature);
         }
 
         try {
@@ -168,10 +169,12 @@ final readonly class EffectiveHandlerPayload
      * parameter, or an untyped one), and a 400 otherwise. Neither the Journal Value Codec nor JSON Value Mapping
      * sees it.
      */
-    private function emptyJsonInput(): mixed
+    private function emptyJsonInput(?\ReflectionFunctionAbstract $signature): mixed
     {
-        if ($this->parameter?->isDefaultValueAvailable() === true) {
-            return $this->parameter->getDefaultValue();
+        // The payload parameter follows the context, as HandlerPayloadInferer reads it.
+        $parameter = $signature?->getParameters()[1] ?? null;
+        if ($parameter?->isDefaultValueAvailable() === true) {
+            return $parameter->getDefaultValue();
         }
 
         if ($this->type === null || $this->type->allowsNull()) {
