@@ -7,9 +7,6 @@ namespace Restate;
 /**
  * The request that started the current invocation, as Restate passed it to this handler ({@see Context::request()}).
  * The same for every attempt of the invocation, except for the attempt headers.
- *
- * Restate sends the idempotency key, scope and limit key from service protocol v7 (Restate 1.8) on; with older
- * servers they are always null.
  */
 final readonly class Request
 {

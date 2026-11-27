@@ -13,9 +13,9 @@ final readonly class InvocationConfiguration
      *                                             workflow ("eager state"): true preloads all of it, false none (every
      *                                             read is a round trip to Restate), a list only those keys (the rest is
      *                                             fetched on first read; best-effort, within the server's eager state
-     *                                             size limit). A non-empty list needs Restate 1.8 (discovery manifest
-     *                                             v5); discovery fails on an older server. Null keeps the server's
-     *                                             default (preload all). Not valid on a plain service.
+     *                                             size limit). A non-empty list needs discovery manifest v5
+     *                                             (Restate 1.8). Null keeps the server's default (preload all). Not valid
+     *                                             on a plain service.
      */
     public function __construct(
         public readonly ?int $inactivityTimeoutMillis = null,

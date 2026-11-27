@@ -100,8 +100,6 @@ interface InvocationOperations
     /**
      * Ends the run's attempt, and with it the invocation's, asking Restate to pause the invocation instead of retrying;
      * the run executes again once someone resumes the invocation. The attempt must then stop as after a suspension.
-     * Needs service protocol v7 (Restate 1.8): below it this throws a {@see BackendException} (protocol, 573) and the
-     * attempt fails, for Restate to retry.
      */
     public function proposeRunCompletionPause(int $handle, string $message, int $attemptDurationMillis): void;
 

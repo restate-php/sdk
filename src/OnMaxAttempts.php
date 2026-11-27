@@ -15,8 +15,7 @@ enum OnMaxAttempts: string
 
     /**
      * The invocation pauses instead, as if the run had thrown a {@see PauseError}: the run has no result and executes
-     * again once someone resumes the invocation. Needs Restate 1.8 or newer (service protocol v7); on an older server
-     * every retryable failure of such a run fails the attempt with error code 573.
+     * again once someone resumes the invocation.
      */
     case Pause = 'pause';
 }

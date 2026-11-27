@@ -46,7 +46,7 @@ Related packages: [`restate/ingress`](https://github.com/restate-php/ingress) (c
 
 - PHP 8.4, 8.5 or 8.6, NTS or ZTS
 - The Restate PHP extension, `ext-restate`
-- Restate Server 1.8 or newer (1.7 best-effort)
+- Restate Server 1.8 or newer
 
 ## Documentation
 

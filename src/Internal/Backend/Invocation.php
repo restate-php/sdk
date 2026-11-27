@@ -36,8 +36,7 @@ interface Invocation extends InvocationOperations
     public function notifyError(string $message, string $stacktrace = '', ?int $retryAfterMillis = null, int $code = 500): void;
 
     /**
-     * Ends the attempt asking Restate to pause the invocation instead of retrying it, until someone resumes it. Needs
-     * service protocol v7 (Restate 1.8): below it the attempt fails with 573 instead, which Restate retries.
+     * Ends the attempt asking Restate to pause the invocation instead of retrying it, until someone resumes it.
      */
     public function notifyPause(string $message, string $stacktrace = ''): void;
 
